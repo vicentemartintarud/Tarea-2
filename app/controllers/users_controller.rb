@@ -27,22 +27,28 @@ class UsersController < ApplicationController
   # POST /users.json
   def create
     respond_to do |format|
-      begin
-        @user = User.new(usuario:params[:usuario], nombre:params[:nombre])
-        begin
-          @user.apellido = params[:apellido]
-        rescue
-        end
-        begin
-          @user.twitter = params[:twitter]
-        rescue
-        end
-        @user.save
-        format.html { redirect_to @user, notice: 'User was successfully created.' }
-        format.json { render :show, status: :created, location: @user }
-      rescue
+      if params[:id]
+        @message = "No se puede crear usuario con id"
         format.html { render :new }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
+        format.json { render "creation-error", status: :bad_request }
+      else
+        begin
+          @user = User.new(usuario:params[:usuario], nombre:params[:nombre])
+          begin
+            @user.apellido = params[:apellido]
+          rescue
+          end
+          begin
+            @user.twitter = params[:twitter]
+          rescue
+          end
+          @user.save
+          format.html { redirect_to @user, notice: 'User was successfully created.' }
+          format.json { render :show, status: :created, location: @user }
+        rescue
+          format.html { render :new }
+          format.json { render json: @user.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
@@ -77,8 +83,6 @@ class UsersController < ApplicationController
   # DELETE /users/1
   # DELETE /users/1.json
   def destroy
-    puts params
-    puts "Aqui paso yo"
     @user.destroy
     respond_to do |format|
       format.html { redirect_to users_url, notice: 'User was successfully destroyed.' }
@@ -89,7 +93,14 @@ class UsersController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_user
-      @user = User.find(params[:id])
+      begin
+        @user = User.find(params[:id])
+      rescue
+        @message = "Usuario no encontrado"
+        respond_to do |format|
+          format.json { render "search-error", status: :not_found }
+        end
+      end
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

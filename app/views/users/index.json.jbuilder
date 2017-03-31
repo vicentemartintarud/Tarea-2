@@ -7,3 +7,4 @@ json.usuarios do
     json.twitter user.twitter
   end
 end
+json.total @users.count
