@@ -1,4 +1,5 @@
 class UsersController < ApplicationController
+  protect_from_forgery :except => [:update, :destroy, :create]
   before_action :set_user, only: [:show, :edit, :update, :destroy]
   respond_to :json
 
@@ -25,13 +26,21 @@ class UsersController < ApplicationController
   # POST /users
   # POST /users.json
   def create
-    @user = User.new(user_params)
-
     respond_to do |format|
-      if @user.save
+      begin
+        @user = User.new(usuario:params[:usuario], nombre:params[:nombre])
+        begin
+          @user.apellido = params[:apellido]
+        rescue
+        end
+        begin
+          @user.twitter = params[:twitter]
+        rescue
+        end
+        @user.save
         format.html { redirect_to @user, notice: 'User was successfully created.' }
         format.json { render :show, status: :created, location: @user }
-      else
+      rescue
         format.html { render :new }
         format.json { render json: @user.errors, status: :unprocessable_entity }
       end
@@ -42,11 +51,24 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1.json
   def update
     respond_to do |format|
-      if @user.update(user_params)
-        format.html { redirect_to @user, notice: 'User was successfully updated.' }
-        format.json { render :show, status: :ok, location: @user }
-      else
-        format.html { render :edit }
+      begin
+        if params[:usuario]
+          @user.usuario = params[:usuario]
+        end
+        if params[:nombre]
+          @user.nombre = params[:nombre]
+        end
+        if params[:apellido]
+          @user.apellido = params[:apellido]
+        end
+        if params[:twitter]
+          @user.twitter = params[:twitter]
+        end
+        @user.save
+        format.html { redirect_to @user, notice: 'User was successfully created.' }
+        format.json { render :show, status: :created, location: @user }
+      rescue
+        format.html { render :new }
         format.json { render json: @user.errors, status: :unprocessable_entity }
       end
     end
@@ -55,6 +77,8 @@ class UsersController < ApplicationController
   # DELETE /users/1
   # DELETE /users/1.json
   def destroy
+    puts params
+    puts "Aqui paso yo"
     @user.destroy
     respond_to do |format|
       format.html { redirect_to users_url, notice: 'User was successfully destroyed.' }
@@ -70,6 +94,6 @@ class UsersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_params
-      params.require(:user).permit(:username, :first_name, :last_name, :twitter)
+      params.require(:user).permit(:usuario, :nombre, :apellido, :twitter)
     end
 end
