@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  root 'users#index'
+  root 'users#index', :defaults => { :format => :json }
 
   get 'usuario', to:"users#index", :defaults => { :format => :json }
   get 'usuario/:id', to:"users#show", :defaults => { :format => :json }
@@ -7,6 +7,6 @@ Rails.application.routes.draw do
   put 'usuario', to:"users#create", :defaults => { :format => :json }
   delete 'usuario/:id', to:"users#destroy", :defaults => { :format => :json }
   #get 'homeworks/:id/studentanswer', to:"homeworks#answers", as: "studentanswer"
-  resources :users, :defaults => { :format => :json }
+  #resources :users, :defaults => { :format => :json }
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

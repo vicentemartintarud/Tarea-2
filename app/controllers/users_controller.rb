@@ -27,28 +27,27 @@ class UsersController < ApplicationController
   # POST /users.json
   def create
     respond_to do |format|
-      if params[:id]
-        @message = "No se puede crear usuario con id"
-        format.html { render :new }
-        format.json { render "creation-error", status: :bad_request }
-      else
-        begin
-          @user = User.new(usuario:params[:usuario], nombre:params[:nombre])
-          begin
-            @user.apellido = params[:apellido]
-          rescue
-          end
-          begin
-            @user.twitter = params[:twitter]
-          rescue
-          end
-          @user.save
-          format.html { redirect_to @user, notice: 'User was successfully created.' }
-          format.json { render :show, status: :created, location: @user }
-        rescue
+      begin
+        if params[:id]
+          @message = "No se puede crear usuario con id"
           format.html { render :new }
-          format.json { render json: @user.errors, status: :unprocessable_entity }
+          format.json { render "error", status: :bad_request }
+        else
+          if params[:usuario] && params[:nombre]
+            @user = User.new(usuario:params[:usuario], nombre:params[:nombre], apellido:params[:apellido], twitter:params[:twitter])
+            @user.save
+            format.html { redirect_to @user, notice: 'User was successfully created.' }
+            format.json { render :show, status: :created }
+          else
+            @message = "La creación ha fallado"
+            format.html { render :new }
+            format.json { render "error", status: :internal_server_error }
+          end
         end
+      rescue
+        @message = "La creación ha fallado"
+        format.html { render :new }
+        format.json { render json: "error", status: :internal_server_error }
       end
     end
   end
@@ -58,24 +57,31 @@ class UsersController < ApplicationController
   def update
     respond_to do |format|
       begin
-        if params[:usuario]
-          @user.usuario = params[:usuario]
+        if params[:id].to_i == @user.id
+          if params[:usuario]
+            @user.usuario = params[:usuario]
+          end
+          if params[:nombre]
+            @user.nombre = params[:nombre]
+          end
+          if params[:apellido]
+            @user.apellido = params[:apellido]
+          end
+          if params[:twitter]
+            @user.twitter = params[:twitter]
+          end
+          @user.save
+          format.html { redirect_to @user, notice: 'User was successfully created.' }
+          format.json { render :show, status: :ok }
+        else
+          @message = "id no es modificable"
+          format.html { render :new }
+          format.json { render "error", status: :bad_request }
         end
-        if params[:nombre]
-          @user.nombre = params[:nombre]
-        end
-        if params[:apellido]
-          @user.apellido = params[:apellido]
-        end
-        if params[:twitter]
-          @user.twitter = params[:twitter]
-        end
-        @user.save
-        format.html { redirect_to @user, notice: 'User was successfully created.' }
-        format.json { render :show, status: :created, location: @user }
       rescue
+        @message = "La modificación ha fallado"
         format.html { render :new }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
+        format.json { render json: "error", status: :internal_server_error }
       end
     end
   end
@@ -98,7 +104,7 @@ class UsersController < ApplicationController
       rescue
         @message = "Usuario no encontrado"
         respond_to do |format|
-          format.json { render "search-error", status: :not_found }
+          format.json { render "error", status: :not_found }
         end
       end
     end
