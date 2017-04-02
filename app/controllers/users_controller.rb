@@ -57,7 +57,11 @@ class UsersController < ApplicationController
   def update
     respond_to do |format|
       begin
-        if params[:id].to_i == @user.id
+        if request.raw_post.include? "id"
+          @message = "id no es modificable"
+          format.html { render :new }
+          format.json { render "error", status: :bad_request }
+        else
           if params[:usuario]
             @user.usuario = params[:usuario]
           end
@@ -73,10 +77,6 @@ class UsersController < ApplicationController
           @user.save
           format.html { redirect_to @user, notice: 'User was successfully created.' }
           format.json { render :show, status: :ok }
-        else
-          @message = "id no es modificable"
-          format.html { render :new }
-          format.json { render "error", status: :bad_request }
         end
       rescue
         @message = "La modificación ha fallado"
@@ -111,6 +111,6 @@ class UsersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_params
-      params.require(:user).permit(:usuario, :nombre, :apellido, :twitter)
+      params.permit(:id, :format, :usuario, :nombre, :apellido, :twitter)
     end
 end
